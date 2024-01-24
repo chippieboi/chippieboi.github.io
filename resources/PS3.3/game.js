@@ -98,9 +98,98 @@ PS.touch = function( x, y, data, options ) {
     //PS.debug( "clicked @ " + x + ", " + y + "\n" );
     //FOR RANDOM SEED, PS.date().time
     //PS.color(x,y,color) OR PS.color(x,y,r,g,b)
-    if(y == 0){
-        return;
+    if(y == 0 && x == 7){
+        PS.randboard();
     }
+    else if(y != 0){
+        PS.beadcolor(x,y);
+    }
+
+
+};
+
+//randomize the board
+PS.randboard = function(){
+    PS.clearboard();
+    //uses the unix epoch to seed the randomness that chooses which
+    //puzzles is created
+    PS.seed(PS.date().time);
+
+    let board = PS.random(4);
+    if(board == 1){
+        PS.board1();
+    }
+    else if(board == 2){
+        PS.board2();
+    }
+    else if(board == 3){
+        PS.board3();
+    }
+    else if(board == 4){
+        PS.board4();
+    }
+
+
+}
+
+//creates puzzle one
+PS.board1 = function(){
+    PS.color(6,1,PS.COLOR_GREEN);
+    PS.color(2,2,PS.COLOR_GREEN);
+    PS.color(3,3,PS.COLOR_GREEN);
+    PS.color(1,4,PS.COLOR_GREEN);
+    PS.color(2,4,PS.COLOR_GREEN);
+    PS.color(0,5,PS.COLOR_GREEN);
+    PS.color(4,6,PS.COLOR_GREEN);
+}
+
+//creates puzzle two
+PS.board2 = function(){
+    PS.color(0,1,PS.COLOR_GREEN);
+    PS.color(4,2,PS.COLOR_GREEN);
+    PS.color(5,3,PS.COLOR_GREEN);
+    PS.color(2,5,PS.COLOR_GREEN);
+    PS.color(7,7,PS.COLOR_GREEN);
+}
+
+//creates puzzle three
+PS.board3 = function(){
+    PS.color(0,2,PS.COLOR_GREEN);
+    PS.color(5,2,PS.COLOR_GREEN);
+    PS.color(4,3,PS.COLOR_GREEN);
+    PS.color(6,4,PS.COLOR_GREEN);
+    PS.color(1,5,PS.COLOR_GREEN);
+    PS.color(4,5,PS.COLOR_GREEN);
+    PS.color(7,6,PS.COLOR_GREEN);
+    PS.color(3,7,PS.COLOR_GREEN);
+    PS.color(2,8,PS.COLOR_GREEN);
+}
+
+//creates puzzle four
+PS.board4 = function(){
+    PS.color(2,2,PS.COLOR_GREEN);
+    PS.color(5,2,PS.COLOR_GREEN);
+    PS.color(1,4,PS.COLOR_GREEN);
+    PS.color(6,4,PS.COLOR_GREEN);
+    PS.color(1,5,PS.COLOR_GREEN);
+    PS.color(6,5,PS.COLOR_GREEN);
+    PS.color(2,6,PS.COLOR_GREEN);
+    PS.color(3,6,PS.COLOR_GREEN);
+    PS.color(4,6,PS.COLOR_GREEN);
+    PS.color(5,6,PS.COLOR_GREEN);
+}
+
+//clears the board
+PS.clearboard = function(){
+    for(let x = 0; x < 8; x++){
+        for(let y = 1; y < 9; y++){
+            PS.color(x,y,PS.COLOR_WHITE);
+        }
+    }
+}
+
+//coloring beads
+PS.beadcolor = function(x,y){
     //color the bead that was clicked on
     PS.flip(x,y)
 
@@ -119,8 +208,7 @@ PS.touch = function( x, y, data, options ) {
     if((y+1) <= 8){
         PS.flip(x,y+1);
     }
-
-};
+}
 
 //flip beads color
 PS.flip = function(x, y){
