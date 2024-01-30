@@ -121,7 +121,7 @@ PS.randboard = function(){
     //puzzles is created
     PS.seed(PS.date().time);
 
-    let board = PS.random(4);
+    let board = PS.random(5);
     //board = 5;
     if(board == 1){
         PS.board1();
