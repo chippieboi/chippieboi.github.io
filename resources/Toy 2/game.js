@@ -122,7 +122,7 @@ PS.randboard = function(){
     PS.seed(PS.date().time);
 
     let board = PS.random(4);
-    board = 5;
+    //board = 5;
     if(board == 1){
         PS.board1();
     }
