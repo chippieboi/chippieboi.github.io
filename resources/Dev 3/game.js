@@ -147,14 +147,24 @@ PS.check_win = function(level_num){
                         }
                     }
                 }
-                level = 1;
-                PS.level1();
+                /* NEXT LEVEL CODE FOR WHENEVER I ADD ON TO THIS
+                PS.level1();*/
+                level++;
+                PS.win();
             }
             else{
                 return;
             }
             break;
     }
+}
+
+PS.win = function(){
+    PS.statusText("Congratulations!");
+    PS.clear();
+    PS.color(2,2,PS.COLOR_BLUE);
+    currentx = 2;
+    currenty = 2;
 }
 
 PS.clear = function(){
@@ -246,6 +256,9 @@ PS.restart = function(levelnum){
             break;
         case(3):
             PS.level3();
+            break;
+        case(4):
+            PS.win();
             break;
     }
 }
