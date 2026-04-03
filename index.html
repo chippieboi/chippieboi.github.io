@@ -1,0 +1,160 @@
+<!doctype html>
+<html lang=en>
+
+  <head>
+    <meta charset=utf-8>
+    <script src=gulls.js></script>
+    <script src=mouse.js></script>
+    <script src=video.js></script>
+    <style> body { margin:0 } </style> 
+    <script>
+
+
+// because gulls uses the await keyword, we have to wrap our
+// code in an async function and call it. when we use js modules we
+// don't have to do this, which is nice... but wrapping isn't that
+// big of a deal.
+async function run() {
+    const sg = await gulls.init()
+
+    await Video.init()
+
+    Mouse.init()
+
+
+    // a simple vertex shader to make a quad
+    const quadVertexShader = gulls.constants.vertex
+
+    // our fragment shader, just returns blue
+    const fragmentShader = `
+    @group(0) @binding(0) var<uniform> res : vec2f;
+    @group(0) @binding(1) var<uniform> frame: f32;
+    @group(0) @binding(2) var<uniform> slider: f32;
+    @group(0) @binding(3) var<uniform> mouse: vec2f;
+    @group(0) @binding(6) var<uniform> space: f32;
+    
+    //buffer, sampler
+    @group(0) @binding(4) var videoSampler: sampler;
+    @group(0) @binding(5) var backBuffer: texture_2d<f32>;
+    @group(1) @binding(0) var videoBuffer: texture_external;
+
+
+    @fragment
+    fn fs( @builtin(position) pos : vec4f ) -> @location(0) vec4f {
+        let uv = pos.xy / res;
+
+        let grid_size = slider;
+
+        var pixel_uv = floor(uv * grid_size) / grid_size;
+
+        let video = textureSampleBaseClampToEdge( videoBuffer, videoSampler, pixel_uv);
+
+        let fb : vec4f = textureSample( backBuffer, videoSampler, pixel_uv);
+
+        let new_uv = grid(uv, grid_size, grid_size);
+
+        var color = video.xyz;
+
+        let dist = distance(uv, mouse.xy);
+        let impact = smoothstep(0.3, 0.0, dist);
+
+        let r = random(pixel_uv + vec2f(mymod(frame, 120.0) * 0.01));
+        let g = random(pixel_uv + vec2f(mymod(frame, 120.0) * 0.02));
+        let b = random(pixel_uv + vec2f(mymod(frame, 120.0) * 0.03));
+
+        color += vec3f(r, g, b) * impact * 0.5;
+
+        color = mix(color, vec3f(1.0) - color, space);
+
+        return vec4f(color, 1.);
+    }
+
+    fn grid(uv: vec2f, col: f32, row: f32) -> vec2f {
+        var p = uv;
+        p = vec2f(p.x * col, p.y * row);
+
+        p.x += step(1., mymod(p.y, 2.0)) * 0.5;
+
+        return fract(p);
+    }
+
+    fn mymod(x: f32, y: f32) -> f32 {
+        return x - y * floor(x/y);
+    }
+
+    fn random(st: vec2f) -> f32 {
+        return fract(sin(dot(st.xy, vec2f(12.9898,78.233))) * 43758.5453123);
+    }
+    `
+
+    // our vertex + fragment shader together
+    const shader = quadVertexShader + fragmentShader
+
+    const slider = document.querySelector('#slider')
+    let slider_u = sg.uniform(slider.value)
+
+    const keys = {space: 0}
+    window.onkeydown = e => {
+        if (e.code === 'Space') keys.space = 1
+        //console.log(keys.space)
+    }
+    window.onkeyup = e => {
+        if (e.code === 'Space') keys.space = 0
+       //console.log(keys.space)
+    }
+    let key_u = sg.uniform(keys.space)
+    //console.log(key_u.value)
+
+    //shader uniforms
+    let frame = sg.uniform(0)
+    const mouse = sg.uniform(Mouse.values)
+
+    //video stuff
+    const back = new Float32Array(gulls.width * gulls.height * 4)
+    const feedback_t = sg.texture(back)
+    
+    // create a render pass
+    const renderPass = await sg.render({
+        shader, 
+        data:[
+            sg.uniform([window.innerWidth, window.innerHeight]),
+            frame,
+            slider_u,
+            mouse,
+            sg.sampler(),
+            feedback_t,
+            key_u,
+            sg.video(Video.element)
+        ],
+        onframe() {frame.value++;
+            mouse.value = Mouse.values;
+            key_u.value = keys.space;
+        },
+        copy:feedback_t
+        //onframe() {mouse.value = Mouse.values}
+    })
+
+    slider.oninput = ()=> slider_u.value = slider.value
+
+    // run our render pass
+    sg.run( renderPass )
+}
+
+run()
+
+
+    </script>
+  </head>
+  
+  <body>
+    <canvas></canvas>
+    <input 
+       type=range 
+       id=slider 
+       min=4 max=40 
+       step=1 
+       style='position:absolute; left:0; top:0; z-index:1'
+    /> 
+  </body>
+  
+</html>
